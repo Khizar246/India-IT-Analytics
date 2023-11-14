@@ -1,11 +1,13 @@
 import streamlit as st
 import pandas as pd
-import os
 import plotly.express as px
+from pathlib import Path
 
-# Specify the complete directory and file name
-data = pd.read_csv(os.getcwd() + "/Study_Material/App_Project/Final_Data.csv")
-print(os.getcwd() + "/Study_Material/App_Project/Final_Data.csv")
+# Specify the relative file path in your GitHub repository
+file_path = Path("Final_Data.csv")
+
+# Load your cleaned dataset from the specified file path
+data = pd.read_csv(file_path)
 
 # Set the title of the Streamlit page with custom formatting
 st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">Skills Gap Analysis for IT Jobs</h1>', unsafe_allow_html=True)
