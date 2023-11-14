@@ -6,7 +6,6 @@ import plotly.express as px
 # Specify the complete directory and file name
 data = pd.read_csv(os.getcwd() + "/Study_Material/App_Project/Final_Data.csv")
 print(os.getcwd() + "/Study_Material/App_Project/Final_Data.csv")
-# Load your cleaned dataset from t
 
 # Set the title of the Streamlit page with custom formatting
 st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">Skills Gap Analysis for IT Jobs</h1>', unsafe_allow_html=True)
