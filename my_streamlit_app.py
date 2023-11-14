@@ -6,7 +6,7 @@ import plotly.express as px
 data = pd.read_csv("Final_Data.csv")
 
 # Set the title of the Streamlit page with custom formatting
-st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">Skills Gap Analysis for IT Jobs</h1>', unsafe_allow_html=True)
+st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">IT Skills and Salary Trends in India</h1>', unsafe_allow_html=True)
 
 # Create a list of unique job titles
 job_titles = ['all'] + data['TITLE'].unique().tolist()
