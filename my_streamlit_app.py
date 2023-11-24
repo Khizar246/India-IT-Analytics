@@ -30,19 +30,14 @@ if selected_tab == "Skills Analysis":
         st.subheader("Skills Required for All Job Titles")
         skill_counts = data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
         total_skills = skill_counts.sum()
-        percentages = (skill_counts / total_skills) * 100
 
-        skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values, 'Percentage': percentages.values})
+        skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values})
         skill_df = skill_df.sort_values(by='Count', ascending=True)
         
-        # Round the Percentage to one decimal place and add the percentage sign
-        skill_df['Percentage'] = skill_df['Percentage'].round(1).astype(str) + '%'
-
-        # Create a bar chart with rounded percentages and the percentage sign outside the bars
-        fig = px.bar(skill_df, x='Count', y='Skills', text='Percentage', labels={'Count': 'Skill Count', 'Percentage': 'Percentage'})
+        # Create a bar chart with skill count
+        fig = px.bar(skill_df, x='Count', y='Skills', labels={'Count': 'Skill Count'})
         fig.update_xaxes(title=None, showticklabels=False)  # Remove X-axis completely
         fig.update_layout(width=1000, height=800, showlegend=False)  # Increase the size of the graph
-        fig.update_traces(textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
     elif selected_title != 'all':
         if selected_category == 'all':
@@ -50,19 +45,14 @@ if selected_tab == "Skills Analysis":
             selected_data = data[data['TITLE'] == selected_title]
             skill_counts = selected_data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
             total_skills = skill_counts.sum()
-            percentages = (skill_counts / total_skills) * 100
 
-            skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values, 'Percentage': percentages.values})
+            skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values})
             skill_df = skill_df.sort_values(by='Count', ascending=True)
 
-            # Round the Percentage to one decimal place and add the percentage sign
-            skill_df['Percentage'] = skill_df['Percentage'].round(1).astype(str) + '%'
-
-            # Create a bar chart with rounded percentages and the percentage sign outside the bars
-            fig = px.bar(skill_df, x='Count', y='Skills', text='Percentage', labels={'Count': 'Skill Count', 'Percentage': 'Percentage'})
+            # Create a bar chart with skill count
+            fig = px.bar(skill_df, x='Count', y='Skills', labels={'Count': 'Skill Count'})
             fig.update_xaxes(title=None, showticklabels=False)  # Remove X-axis completely
             fig.update_layout(width=1000, height=800, showlegend=False)  # Increase the size of the graph
-            fig.update_traces(textposition='outside')
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.subheader(f"Skills Required for {selected_title} in {selected_category} Category")
@@ -72,19 +62,14 @@ if selected_tab == "Skills Analysis":
             else:
                 skill_counts = selected_data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
                 total_skills = skill_counts.sum()
-                percentages = (skill_counts / total_skills) * 100
 
-                skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values,'Percentage': percentages.values})
+                skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values})
                 skill_df = skill_df.sort_values(by='Count', ascending=True)
 
-                # Round the Percentage to one decimal place and add the percentage sign
-                skill_df['Percentage'] = skill_df['Percentage'].round(1).astype(str) + '%'
-
-                # Create a bar chart with rounded percentages and the percentage sign outside the bars
-                fig = px.bar(skill_df, x='Count', y='Skills', text='Percentage', labels={'Count': 'Skill Count', 'Percentage': 'Percentage'})
+                # Create a bar chart with skill count
+                fig = px.bar(skill_df, x='Count', y='Skills', labels={'Count': 'Skill Count'})
                 fig.update_xaxes(title=None, showticklabels=False)  # Remove X-axis completely
                 fig.update_layout(width=1000, height=800, showlegend=False)  # Increase the size of the graph
-                fig.update_traces(textposition='outside')
                 st.plotly_chart(fig, use_container_width=True)
             
 elif selected_tab == "Salary":
