@@ -3,8 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # loading the data
-file_path = "C:/Users/khize/Study_Material/App_Project/Final_Data.csv"
-data = pd.read_csv(file_path)
+data = pd.read_csv("Final_Data.csv")
 
 # Set the title of the Streamlit page with custom formatting
 st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">IT Skills and Salary Trends in India</h1>', unsafe_allow_html=True)
