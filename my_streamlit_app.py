@@ -1,34 +1,38 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import os
+import csv
+import urllib3
+import time
+from gradientai import Gradient
 
-# loading the data
-data = pd.read_csv("Final_Data.csv")
+# Loading the main website data
+main_website_data = pd.read_csv("Final_Data.csv")
 
 # Set the title of the Streamlit page with custom formatting
 st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">IT Skills and Salary Trends in India</h1>', unsafe_allow_html=True)
 
 # Create a list of unique job titles
-job_titles = ['all'] + data['TITLE'].unique().tolist()
+job_titles = ['all'] + main_website_data['TITLE'].unique().tolist()
 
 # Create a list of unique categories including "All"
-categories = ['all'] + data['CATEGORY'].unique().tolist()
+categories = ['all'] + main_website_data['CATEGORY'].unique().tolist()
 
 # Create a sidebar with tabs
-selected_tab = st.sidebar.selectbox("Select a Tab", ["Skills Analysis", "Salary", "My Profile", "About"])
+selected_tab = st.sidebar.selectbox("Select a Tab", ["Skills Analysis", "Salary", "Career Recommendation", "My Profile", "About"])
 
 # Add space between the title and the skills & category tabs
 st.write("")  # Empty space
 
 if selected_tab == "Skills Analysis":
-
     # Create a sidebar to select job title and category
     selected_title = st.sidebar.selectbox("Select a Job Title", job_titles)
     selected_category = st.sidebar.selectbox("Select a Category", categories)
 
     if selected_title == 'all' and selected_category == 'all':
         st.subheader("Skills Required for All Job Titles")
-        skill_counts = data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
+        skill_counts = main_website_data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
         total_skills = skill_counts.sum()
         percentages = (skill_counts / total_skills) * 100
 
@@ -44,10 +48,16 @@ if selected_tab == "Skills Analysis":
         fig.update_layout(width=1000, height=800, showlegend=False)  # Increase the size of the graph
         fig.update_traces(textposition='outside')
         st.plotly_chart(fig, use_container_width=True)
-    elif selected_title != 'all':
-        if selected_category == 'all':
+    else:
+        if selected_title != 'all':
+            selected_data = main_website_data[main_website_data['TITLE'] == selected_title]
             st.subheader(f"Skills Required for {selected_title}")
-            selected_data = data[data['TITLE'] == selected_title]
+        if selected_category != 'all':
+            selected_data = selected_data[selected_data['CATEGORY'] == selected_category] if selected_title != 'all' else main_website_data[main_website_data['CATEGORY'] == selected_category]
+            st.subheader(f"Skills Required for {selected_title if selected_title != 'all' else 'all'} in {selected_category} Category")
+        if selected_data.empty:
+            st.warning("Oh, snap! We're currently in data collection mode for your requested graph, and it's like hunting for unicorns right now – pretty rare stuff! 😅")
+        else:
             skill_counts = selected_data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
             total_skills = skill_counts.sum()
             percentages = (skill_counts / total_skills) * 100
@@ -64,31 +74,8 @@ if selected_tab == "Skills Analysis":
             fig.update_layout(width=1000, height=800, showlegend=False)  # Increase the size of the graph
             fig.update_traces(textposition='outside')
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.subheader(f"Skills Required for {selected_title} in {selected_category} Category")
-            selected_data = data[(data['TITLE'] == selected_title) & (data['CATEGORY'] == selected_category)]
-            if selected_data.empty:
-                st.warning("Oh, snap! We're currently in data collection mode for your requested graph, and it's like hunting for unicorns right now – pretty rare stuff! 😅")
-            else:
-                skill_counts = selected_data['SKILLS'].str.split(', ').explode().value_counts().sort_index(ascending=True)
-                total_skills = skill_counts.sum()
-                percentages = (skill_counts / total_skills) * 100
 
-                skill_df = pd.DataFrame({'Skills': skill_counts.index, 'Count': skill_counts.values,'Percentage': percentages.values})
-                skill_df = skill_df.sort_values(by='Count', ascending=True)
-
-                # Round the Percentage to one decimal place and add the percentage sign
-                skill_df['Percentage'] = skill_df['Percentage'].round(1).astype(str) + '%'
-
-                # Create a bar chart with rounded percentages and the percentage sign outside the bars
-                fig = px.bar(skill_df, x='Count', y='Skills', text='Percentage', labels={'Count': 'Skill Count', 'Percentage': 'Percentage'})
-                fig.update_xaxes(title=None, showticklabels=False)  # Remove X-axis completely
-                fig.update_layout(width=1000, height=800, showlegend=False)  # Increase the size of the graph
-                fig.update_traces(textposition='outside')
-                st.plotly_chart(fig, use_container_width=True)
-            
 elif selected_tab == "Salary":
-
     # Create a sidebar option to select specific job title or all
     job_title_option = st.sidebar.radio("Select Job Title", ("Note", "Specific Job Title"))
 
@@ -103,7 +90,7 @@ elif selected_tab == "Salary":
 
         if selected_title:
             st.subheader(f"Average Salary for {selected_title}")
-            selected_data = data[data['TITLE'] == selected_title]
+            selected_data = main_website_data[main_website_data['TITLE'] == selected_title]
             if selected_data.empty:
                 st.warning("Oh, snap! We're currently in data collection mode for your requested graph, and it's like hunting for unicorns right now – pretty rare stuff! 😅")
             else:
@@ -123,6 +110,80 @@ elif selected_tab == "Salary":
 
                 st.plotly_chart(fig_salary, use_container_width=True)
 
+elif selected_tab == "Career Recommendation":
+
+    # Set Gradient environment variables
+    os.environ['GRADIENT_ACCESS_TOKEN'] = "Mg8tR4gJzeZj9sMUGLuQessyTXzWuolU"
+    os.environ['GRADIENT_WORKSPACE_ID'] = "ff8abc0b-91b0-4e0d-9651-b5c98db1b439_workspace"
+
+    # Define the path to your CSV file using raw string to handle backslashes
+    career_dataset_path = r"C:\Users\khize\Study_Material\Projects\Career_recommendation\Career_recommendation_data.csv"
+
+    # Initialize Gradient
+    gradient = Gradient()
+
+    # Load the dataset
+    print("Loading and formatting data...")
+    formatted_data = []
+    with open(career_dataset_path, encoding="utf-8-sig") as f:
+        dataset_data = csv.DictReader(f, delimiter=",")
+        for row in dataset_data:
+            # Construct the prompt from the user's data
+            user_data = f"Interests: {row['Interests']}, Skills: {row['Skills']}, Degree: {row['Undergraduate Course']}, Working: {row['Employment Status']}"
+            # The response is the career path
+            career_response = row['Career Path']
+
+            # Format the data for fine-tuning
+            formatted_entry = {
+                "inputs": f"### User Data:\n{user_data}\n\n### Suggested Career Path:",
+                "response": career_response
+            }
+            formatted_data.append(formatted_entry)
+
+    print("Dataset loaded and formatted.")
+
+    # Get the base model from Gradient
+    base = gradient.get_base_model(base_model_slug="nous-hermes2")
+
+    # Create a model adapter for fine-tuning
+    new_model_adapter = base.create_model_adapter(name="ai_career_recommender")
+
+    print("Fine-tuning model adapter...")
+    chunk_size = 50
+    total_chunks = [formatted_data[x:x+chunk_size] for x in range(0, len(formatted_data), chunk_size)]
+    for i, chunk in enumerate(total_chunks):
+        print(f"Fine-tuning chunk {i+1}/{len(total_chunks)}...")
+        new_model_adapter.fine_tune(samples=chunk)
+
+    # Create a form for user input
+    st.subheader("Career Recommendation Bot")
+    with st.form(key='user_input_form'):
+        interests = st.text_input("Enter your interests:")
+        skills = st.text_input("Enter your skills:")
+        degree = st.text_input("Enter your degree:")
+        working_status = st.text_input("Currently working? (Yes/No):")
+        submit_button = st.form_submit_button(label='Submit')
+
+    if submit_button:
+        user_query = f"Interests: {interests}\nSkills: {skills}\nDegree: {degree}\nCurrently working? (Yes/No): {working_status}"
+        formatted_query = f"### User Data:\n{user_query}\n\n### Suggested Career Path:"
+
+        retries = 3
+        while retries > 0:
+            try:
+                response = new_model_adapter.complete(query=formatted_query, max_generated_token_count=500)
+                break
+            except Exception as e:
+                st.error(f"Attempt failed due to error: {e}")
+                retries -= 1
+                if retries > 0:
+                    st.warning("Retrying...")
+                    time.sleep(5)
+                else:
+                    raise
+
+        st.subheader("Recommended Career Path")
+        st.write(f"Based on the inputs you provided, a recommended career path for you is: {response.generated_output}")
 
 elif selected_tab == "My Profile":
     st.header("My Profile")
@@ -148,3 +209,6 @@ elif selected_tab == "About":
     st.write("1. [Link to Dataset](https://www.kaggle.com/datasets/khizar246/it-jobs-in-india)")
     st.write("2. [GitHub Repository](https://github.com/Khizar246/Data-Analytics/blob/main/Job_Project.ipynb)")
     st.write("3. [YouTube](https://www.youtube.com/watch?v=7G_Kz5MOqps). This is from where i got the inspiration but Luke's project is way more advanced")
+
+st.markdown('<hr style="border-top: 1px solid #e5e5e5;">', unsafe_allow_html=True)
+st.markdown('<p style="font-size: 14px; color: #808080; text-align: center;">Designed by Mohd Khizar</p>', unsafe_allow_html=True)
