@@ -21,6 +21,8 @@ try:
     import gradientai
     st.write("gradientai version:", gradientai.__version__)
     logging.debug(f"gradientai version: {gradientai.__version__}")
+    gradientai_files = os.listdir(os.path.dirname(gradientai.__file__))
+    logging.debug(f"gradientai package contents: {gradientai_files}")
 except ImportError as e:
     st.error(f"ImportError: {e}")
     logging.error(f"ImportError: {e}")
