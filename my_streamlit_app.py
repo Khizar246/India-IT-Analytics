@@ -27,11 +27,11 @@ except ImportError as e:
     st.error(f"ImportError: {e}")
     logging.error(f"ImportError: {e}")
 
-# Attempt to import Gradient
+# Attempt to import Gradient from the correct module
 try:
-    from gradientai import Gradient
-    st.write("Gradient imported successfully.")
-    logging.debug("Gradient imported successfully.")
+    from gradientai._gradient import Gradient
+    st.write("Gradient imported successfully from gradientai._gradient.")
+    logging.debug("Gradient imported successfully from gradientai._gradient.")
 except ImportError as e:
     st.error(f"ImportError: {e}")
     logging.error(f"ImportError: {e}")
