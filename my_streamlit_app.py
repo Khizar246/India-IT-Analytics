@@ -2,66 +2,22 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
-import csv
-import urllib3
-import time
-import logging
-import sys
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-
-# Verify Python version
-python_version = sys.version
-st.write(f"Python version: {python_version}")
-logging.debug(f"Python version: {python_version}")
-
-# Verify gradientai package installation
-try:
-    import gradientai
-    st.write("gradientai version:", gradientai.__version__)
-    logging.debug(f"gradientai version: {gradientai.__version__}")
-    gradientai_files = os.listdir(os.path.dirname(gradientai.__file__))
-    logging.debug(f"gradientai package contents: {gradientai_files}")
-except ImportError as e:
-    st.error(f"ImportError: {e}")
-    logging.error(f"ImportError: {e}")
-
-# Attempt to import Gradient from the correct module
-try:
-    from gradientai._gradient import Gradient
-    st.write("Gradient imported successfully from gradientai._gradient.")
-    logging.debug("Gradient imported successfully from gradientai._gradient.")
-except ImportError as e:
-    st.error(f"ImportError: {e}")
-    logging.error(f"ImportError: {e}")
 
 try:
     # Loading the main website data
     main_website_data = pd.read_csv("Final_Data.csv")
-    logging.info("Main website data loaded successfully.")
 
     # Set the title of the Streamlit page with custom formatting
     st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">IT Skills and Salary Trends in India</h1>', unsafe_allow_html=True)
 
-    # Verify environment variables
-    gradient_access_token = os.environ.get('GRADIENT_ACCESS_TOKEN')
-    gradient_workspace_id = os.environ.get('GRADIENT_WORKSPACE_ID')
-    st.write("GRADIENT_ACCESS_TOKEN:", gradient_access_token)
-    st.write("GRADIENT_WORKSPACE_ID:", gradient_workspace_id)
-    logging.debug(f"GRADIENT_ACCESS_TOKEN: {gradient_access_token}")
-    logging.debug(f"GRADIENT_WORKSPACE_ID: {gradient_workspace_id}")
-
     # Create a list of unique job titles
     job_titles = ['all'] + main_website_data['TITLE'].unique().tolist()
-    logging.info("Job titles loaded.")
 
     # Create a list of unique categories including "All"
     categories = ['all'] + main_website_data['CATEGORY'].unique().tolist()
-    logging.info("Categories loaded.")
 
     # Create a sidebar with tabs
-    selected_tab = st.sidebar.selectbox("Select a Tab", ["Skills Analysis", "Salary", "Career Recommendation", "My Profile", "About"])
+    selected_tab = st.sidebar.selectbox("Select a Tab", ["Skills Analysis", "Salary", "My Profile", "About"])
 
     if selected_tab == "Skills Analysis":
         # Create a sidebar to select job title and category
@@ -134,61 +90,6 @@ try:
                     fig_salary.update_traces(texttemplate='%{text} ₹', textposition='outside')
                     st.plotly_chart(fig_salary, use_container_width=True)
 
-    elif selected_tab == "Career Recommendation":
-        gradient_access_token = os.environ['GRADIENT_ACCESS_TOKEN']
-        gradient_workspace_id = os.environ['GRADIENT_WORKSPACE_ID']
-        career_dataset_path = r"C:\Users\khize\Study_Material\Projects\Career_recommendation\Career_recommendation_data.csv"
-
-        gradient = Gradient()
-
-        formatted_data = []
-        with open(career_dataset_path, encoding="utf-8-sig") as f:
-            dataset_data = csv.DictReader(f, delimiter=",")
-            for row in dataset_data:
-                user_data = f"Interests: {row['Interests']}, Skills: {row['Skills']}, Degree: {row['Undergraduate Course']}, Working: {row['Employment Status']}"
-                career_response = row['Career Path']
-                formatted_entry = {
-                    "inputs": f"### User Data:\n{user_data}\n\n### Suggested Career Path:",
-                    "response": career_response
-                }
-                formatted_data.append(formatted_entry)
-
-        base = gradient.get_base_model(base_model_slug="nous-hermes2")
-        new_model_adapter = base.create_model_adapter(name="ai_career_recommender")
-        chunk_size = 50
-        total_chunks = [formatted_data[x:x+chunk_size] for x in range(0, len(formatted_data), chunk_size)]
-        for i, chunk in enumerate(total_chunks):
-            new_model_adapter.fine_tune(samples=chunk)
-
-        st.subheader("Career Recommendation Bot")
-        with st.form(key='user_input_form'):
-            interests = st.text_input("Enter your interests:")
-            skills = st.text_input("Enter your skills:")
-            degree = st.text_input("Enter your degree:")
-            working_status = st.text_input("Currently working? (Yes/No):")
-            submit_button = st.form_submit_button(label='Submit')
-
-        if submit_button:
-            user_query = f"Interests: {interests}\nSkills: {skills}\nDegree: {degree}\nCurrently working? (Yes/No): {working_status}"
-            formatted_query = f"### User Data:\n{user_query}\n\n### Suggested Career Path:"
-            retries = 3
-            while retries > 0:
-                try:
-                    response = new_model_adapter.complete(query=formatted_query, max_generated_token_count=500)
-                    break
-                except Exception as e:
-                    st.error(f"Attempt failed due to error: {e}")
-                    logging.error(f"Attempt failed due to error: {e}")
-                    retries -= 1
-                    if retries > 0:
-                        st.warning("Retrying...")
-                        time.sleep(5)
-                    else:
-                        raise
-
-            st.subheader("Recommended Career Path")
-            st.write(f"Based on the inputs you provided, a recommended career path for you is: {response.generated_output}")
-
     elif selected_tab == "My Profile":
         st.header("My Profile")
         st.write("Mohd Khizar is a budding professional in the realm of data analytics and technology. With a solid background in data analysis and a deep passion for data visualization, I'm on a dedicated journey to evolve into a proficient data scientist. Although I'm just at the beginning of my career, which kicked off a mere two months ago, I'm already driven to leave a significant mark on the industry.")
@@ -213,5 +114,4 @@ try:
     st.markdown('<p style="font-size: 14px; color: #808080; text-align: center;">Designed by Mohd Khizar</p>', unsafe_allow_html=True)
 
 except Exception as e:
-    logging.error(f"Error occurred: {e}")
     st.error(f"An error occurred: {e}")
