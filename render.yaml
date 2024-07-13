@@ -1,0 +1,8 @@
+
+services:
+  - type: web
+    name: my-streamlit-app
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "streamlit run my_streamlit_app.py"
+    runtime: python3.12.4
