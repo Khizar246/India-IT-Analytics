@@ -5,11 +5,34 @@ import os
 import csv
 import urllib3
 import time
-from gradientai import Gradient
 import logging
+import sys
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Verify Python version
+python_version = sys.version
+st.write(f"Python version: {python_version}")
+logging.debug(f"Python version: {python_version}")
+
+# Verify gradientai package installation
+try:
+    import gradientai
+    st.write("gradientai version:", gradientai.__version__)
+    logging.debug(f"gradientai version: {gradientai.__version__}")
+except ImportError as e:
+    st.error(f"ImportError: {e}")
+    logging.error(f"ImportError: {e}")
+
+# Attempt to import Gradient
+try:
+    from gradientai import Gradient
+    st.write("Gradient imported successfully.")
+    logging.debug("Gradient imported successfully.")
+except ImportError as e:
+    st.error(f"ImportError: {e}")
+    logging.error(f"ImportError: {e}")
 
 try:
     # Loading the main website data
@@ -20,8 +43,12 @@ try:
     st.markdown('<h1 style="font-weight: bold; font-size: 36px; margin-bottom: 20px;">IT Skills and Salary Trends in India</h1>', unsafe_allow_html=True)
 
     # Verify environment variables
-    st.write("GRADIENT_ACCESS_TOKEN:", os.environ.get('GRADIENT_ACCESS_TOKEN'))
-    st.write("GRADIENT_WORKSPACE_ID:", os.environ.get('GRADIENT_WORKSPACE_ID'))
+    gradient_access_token = os.environ.get('GRADIENT_ACCESS_TOKEN')
+    gradient_workspace_id = os.environ.get('GRADIENT_WORKSPACE_ID')
+    st.write("GRADIENT_ACCESS_TOKEN:", gradient_access_token)
+    st.write("GRADIENT_WORKSPACE_ID:", gradient_workspace_id)
+    logging.debug(f"GRADIENT_ACCESS_TOKEN: {gradient_access_token}")
+    logging.debug(f"GRADIENT_WORKSPACE_ID: {gradient_workspace_id}")
 
     # Create a list of unique job titles
     job_titles = ['all'] + main_website_data['TITLE'].unique().tolist()
@@ -106,8 +133,8 @@ try:
                     st.plotly_chart(fig_salary, use_container_width=True)
 
     elif selected_tab == "Career Recommendation":
-        os.environ['GRADIENT_ACCESS_TOKEN'] = "Mg8tR4gJzeZj9sMUGLuQessyTXzWuolU"
-        os.environ['GRADIENT_WORKSPACE_ID'] = "ff8abc0b-91b0-4e0d-9651-b5c98db1b439_workspace"
+        gradient_access_token = os.environ['GRADIENT_ACCESS_TOKEN']
+        gradient_workspace_id = os.environ['GRADIENT_WORKSPACE_ID']
         career_dataset_path = r"C:\Users\khize\Study_Material\Projects\Career_recommendation\Career_recommendation_data.csv"
 
         gradient = Gradient()
@@ -149,6 +176,7 @@ try:
                     break
                 except Exception as e:
                     st.error(f"Attempt failed due to error: {e}")
+                    logging.error(f"Attempt failed due to error: {e}")
                     retries -= 1
                     if retries > 0:
                         st.warning("Retrying...")
@@ -168,7 +196,7 @@ try:
         st.write("1.[My LinkedIn](https://www.linkedin.com/in/khizar246/)")
         st.write("2.[My Tableau profile](https://public.tableau.com/app/profile/mohd.khizer/vizzes)")
         st.write("3.[My portfolio](https://www.datascienceportfol.io/Khizar246)")
-        
+
     elif selected_tab == "About":
         st.header("About")
         st.write("1. Project Description: This project is a testament to my journey as a data enthusiast and aspiring data scientist. It's a project that revolves around exploring the intricate world of IT job skills and salaries, utilizing a dataset meticulously collected and cleaned. This project combines data analysis, data visualization, and Python programming to uncover valuable insights that can help both job seekers and employers in the IT industry.")
